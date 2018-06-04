@@ -22,28 +22,35 @@ object JSCommanFactory {
     private fun getClassIdCommand(model: ServerModel): JSCommand {
         val command = "(function(){" +
                 "var elementsClass = document.getElementsByClassName('${model.elementClass}');" +
-                "console.log(elementsClass);" +
                 "if (elementsClass){" +
                     "for (var i = 0; i < elementsClass.length; i++) {" +
                         "elementsClass[i].click();" +
                     "}" +
                 "}" +
                 "var elementId = document.getElementById('${model.elementId}');" +
-                "console.log(elementId);" +
-            "if (elementId) elementId.click();" +
+                "if (elementId) elementId.click();" +
             "})();"
         return JSCommand(command)
     }
 
     private fun getClassIdHrefCommand(model: ServerModel): JSCommand {
         val command = "(function(){" +
-                "var classHref = document.querySelector('${model.elementClass}').href" +
-                "var idHref = document.getElementById('${model.elementId}').href" +
-                "if (classHref){" +
-                    "window.location.href = classHref" +
-                "} else {" +
-                    "window.location.href = idHref" +
-                "}" +
+                    "var clazzs = document.getElementsByClassName('${model.elementClass}');" +
+                    "var classHref = null;" +
+                    "for(var i=0; i < clazzs.length; i++) {" +
+                        "if (clazzs[i].href) {" +
+                            "classHref = clazzs[i].href;" +
+                            "i = clazzs.length;" +
+                        "}" +
+                    "}" +
+                    "var id = document.getElementById('${model.elementId}');" +
+                    "var idHref = null;" +
+                    "if (id) idHref = id.href;" +
+                    "if (classHref){" +
+                        "window.location.href = classHref;" +
+                    "} else if (idHref) {" +
+                        "window.location.href = idHref;" +
+                    "}" +
             "})();"
         return JSCommand(command)
     }
@@ -52,10 +59,10 @@ object JSCommanFactory {
         val command = "(function(){" +
                 "var links = document.links;" +
                 "var hrefs = [];" +
-                "for(var i=0; links<l.length; i++) {" +
+                "for(var i=0; i < links.length; i++) {" +
                     "hrefs.push(links[i].href);" +
                 "}" +
-                "window.location.href = hrefs[${model.HrefNumber}]" +
+                "window.location.href = hrefs[${model.hrefNumber}]" +
             "})();"
         return JSCommand(command)
     }
@@ -70,9 +77,11 @@ object JSCommanFactory {
     private fun getHrefsCommand(): JSCommand {
         val command = "(function(){" +
                 "var links = document.links;" +
-                "for(var i=0; links<l.length; i++) {" +
-                    "window.location.href = links[i].hre);" +
+                "var hrefs = [];" +
+                "for(var i=0; i < links.length; i++) {" +
+                    "hrefs.push(links[i].href);" +
                 "}" +
+                "Android.hrefsResponse(hrefs.join());" +
             "})();"
         return JSCommand(command)
     }

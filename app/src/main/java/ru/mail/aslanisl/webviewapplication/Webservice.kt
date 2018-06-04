@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 private const val URL = "http://paperwork.press/"
 
 object Webservice {
-    private val webApi by lazy {
+    val webApi by lazy {
         Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(URL)
@@ -20,7 +20,7 @@ object Webservice {
 
     private fun initTest(): List<ServerModel> {
         val items = mutableListOf<ServerModel>()
-        items.add(ServerModel(elementClass = "link menu2__item"))
+        items.add(ServerModel(hrefs = true))
         return items
     }
 }

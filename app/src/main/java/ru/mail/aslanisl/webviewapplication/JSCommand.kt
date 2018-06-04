@@ -1,3 +1,3 @@
 package ru.mail.aslanisl.webviewapplication
 
-data class JSCommand(val command: String)
+data class JSCommand(val command: String? = null)
