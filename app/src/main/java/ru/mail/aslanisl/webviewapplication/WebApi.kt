@@ -7,5 +7,8 @@ import retrofit2.http.Url
 interface WebApi {
 
     @GET
-    fun loadHref(@Url url: String): Call<String>
+    fun loadServerData(@Url url: String): Call<ServerResponse>
+
+    @GET
+    fun loadUrl(@Url url: String): Call<String>
 }

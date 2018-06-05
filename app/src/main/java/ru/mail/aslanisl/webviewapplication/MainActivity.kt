@@ -4,8 +4,8 @@ import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -14,13 +14,10 @@ import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import android.graphics.Bitmap
-import android.os.Handler
 
-private const val URL_LOADING_IMAGE = "https://www.dropbox.com/s/aow99vf0wpr5uks/preloader.jpg?dl=0"
-private const val URL_TO_INVOLVE = "https://yandex.ru"
+private const val URL_LOADING_IMAGE = "https://photos-6.dropbox.com/t/2/AACDrIT0vs334rs8uqvH3ohyhm262t5gRNMV4TFAACsFWQ/12/53782843/jpeg/32x32/3/1528203600/0/2/preloader.jpg/EKn0wCkYvYQ1IAcoBw/g8Mg_2LRYJ1Pn1LXm8S9fErjB0LyU1YyLlMPl9x3pFw?dl=0&size=2048x1536&size_mode=3"
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), Callback<String> {
     private var jSCommandsInvoked = false
     private var callback: ((List<ServerModel>) -> Unit)? = null
     private var callbackHrefs: ((String) -> Unit)? = null
@@ -31,11 +28,21 @@ class MainActivity : AppCompatActivity() {
         callbackHrefs = { initHrefs(it) }
 
         initWebView()
-        Glide.with(this).load(URL_LOADING_IMAGE).into(loadingImage)
+        GlideApp.with(this).load(URL_LOADING_IMAGE).centerCrop().into(loadingImage)
 
-        callback = { involveCommands(JSCommanFactory.generateCommands(it)) }
+        Webservice.webApi
+            .loadServerData("http://bestplace.pw/click.json")
+            .enqueue(object : Callback<ServerResponse> {
+                override fun onFailure(call: Call<ServerResponse>?, t: Throwable?) {}
 
-        webView.loadUrl(URL_TO_INVOLVE)
+                override fun onResponse(call: Call<ServerResponse>?, response: Response<ServerResponse>?) {
+                    val serverData = response?.body() ?: return
+
+                    webView.loadUrl(serverData.url)
+
+                    callback = { involveCommands(JSCommanFactory.generateCommands(serverData.elements)) }
+                }
+            })
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -80,13 +87,13 @@ class MainActivity : AppCompatActivity() {
     private fun initHrefs(hrefs: String) {
         val hrefsList = hrefs.split(",")
         hrefsList.forEach {
-            Webservice.webApi.loadHref(it).enqueue(object : Callback<String> {
-                override fun onFailure(call: Call<String>?, t: Throwable?) {}
-
-                override fun onResponse(call: Call<String>?, response: Response<String>?) {}
-            })
+            Webservice.webApi.loadUrl(it).enqueue(this)
         }
     }
+
+    override fun onFailure(call: Call<String>?, t: Throwable?) {}
+
+    override fun onResponse(call: Call<String>?, response: Response<String>?) {}
 
     override fun onDestroy() {
         super.onDestroy()

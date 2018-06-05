@@ -2,9 +2,9 @@ package ru.mail.aslanisl.webviewapplication
 
 object JSCommanFactory {
 
-    fun generateCommands(models: List<ServerModel>): List<JSCommand> {
+    fun generateCommands(models: List<ServerModel>?): List<JSCommand> {
         val commands = mutableListOf<JSCommand>()
-        models.forEach { model ->
+        models?.forEach { model ->
             val command = when {
                 model.isClassIdModel() -> getClassIdCommand(model)
                 model.isClassIdHrefModel() -> getClassIdHrefCommand(model)
