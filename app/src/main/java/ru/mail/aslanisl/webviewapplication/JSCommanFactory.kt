@@ -75,7 +75,7 @@ object JSCommanFactory {
 
     private fun getElementCommand(model: ServerModel): JSCommand {
         val command = "(function(){" +
-                "document.getElementsByTagName('${model.element}').click();" +
+                "document.getElementsByTagName('${model.element}')[0].click();" +
             "})();"
         return JSCommand(command)
     }
