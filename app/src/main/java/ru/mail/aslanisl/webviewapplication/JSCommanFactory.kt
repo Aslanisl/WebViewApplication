@@ -46,10 +46,14 @@ object JSCommanFactory {
                     "var id = document.getElementById('${model.elementId}');" +
                     "var idHref = null;" +
                     "if (id) idHref = id.href;" +
+                    "var divIdHref = null;" +
+                    "if (id) divIdHref = id.getElementsByTagName('a')[0].href;" +
                     "if (classHref){" +
                         "window.location.href = classHref;" +
                     "} else if (idHref) {" +
                         "window.location.href = idHref;" +
+                    "} else if (divIdHref) {" +
+                        "window.location.href = divIdHref;" +
                     "}" +
             "})();"
         return JSCommand(command)
