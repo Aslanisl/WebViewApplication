@@ -38,35 +38,37 @@ object JSCommanFactory {
                     "var clazzs = document.getElementsByClassName('${model.elementClass}');" +
                     "var classHref = null;" +
                     "for(var i=0; i < clazzs.length; i++) {" +
-                        "if (clazzs[i].href) {" +
-                            "classHref = clazzs[i].href;" +
-                            "i = clazzs.length;" +
-                        "}" +
+                    "    if (clazzs[i].href) {" +
+                    "        classHref = clazzs[i].href;" +
+                    "        i = clazzs.length;" +
+                    "    } else if (clazzs[i].getElementsByTagName('a')[0].href){" +
+                    "        classHref = clazzs[i].getElementsByTagName('a')[0].href;" +
+                    "        i = clazzs.length;" +
+                    "    }" +
                     "}" +
                     "var id = document.getElementById('${model.elementId}');" +
                     "var idHref = null;" +
-                    "if (id) idHref = id.href;" +
-                    "var divIdHref = null;" +
+                    "if (id) idHref = id.href;var divIdHref = null;" +
                     "if (id) divIdHref = id.getElementsByTagName('a')[0].href;" +
                     "if (classHref){" +
-                        "window.location.href = classHref;" +
+                    "    window.location.href = classHref;" +
                     "} else if (idHref) {" +
-                        "window.location.href = idHref;" +
+                    "    window.location.href = idHref;" +
                     "} else if (divIdHref) {" +
-                        "window.location.href = divIdHref;" +
-                    "}" +
-            "})();"
+                    "    window.location.href = divIdHref;" +
+                    "}})();"
         return JSCommand(command)
     }
 
     private fun getHrefNumberCommand(model: ServerModel): JSCommand {
+        val number = model.hrefNumber ?: 0
         val command = "(function(){" +
                 "var links = document.links;" +
                 "var hrefs = [];" +
                 "for(var i=0; i < links.length; i++) {" +
                     "hrefs.push(links[i].href);" +
                 "}" +
-                "window.location.href = hrefs[${model.hrefNumber}]" +
+                "window.location.href = hrefs[${number - 1}]" +
             "})();"
         return JSCommand(command)
     }
