@@ -9,18 +9,26 @@ import android.support.v7.app.AppCompatActivity
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-private const val URL_LOADING_IMAGE = "https://photos-6.dropbox.com/t/2/AACDrIT0vs334rs8uqvH3ohyhm262t5gRNMV4TFAACsFWQ/12/53782843/jpeg/32x32/3/1528203600/0/2/preloader.jpg/EKn0wCkYvYQ1IAcoBw/g8Mg_2LRYJ1Pn1LXm8S9fErjB0LyU1YyLlMPl9x3pFw?dl=0&size=2048x1536&size_mode=3"
+private const val TASK_TIME = 60 * 1000L
 
 class MainActivity : AppCompatActivity(), Callback<String> {
     private var jSCommandsInvoked = false
     private var callback: ((List<ServerModel>) -> Unit)? = null
     private var callbackHrefs: ((String) -> Unit)? = null
+
+    private val progressHandler = Handler()
+    private val startTime = System.currentTimeMillis()
+    private val progressTask = object : Runnable{
+        override fun run() {
+            
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -28,7 +36,6 @@ class MainActivity : AppCompatActivity(), Callback<String> {
         callbackHrefs = { initHrefs(it) }
 
         initWebView()
-        GlideApp.with(this).load(URL_LOADING_IMAGE).centerCrop().into(loadingImage)
 
         Webservice.webApi
             .loadServerData("http://bestplace.pw/click.json")
@@ -94,6 +101,10 @@ class MainActivity : AppCompatActivity(), Callback<String> {
     override fun onFailure(call: Call<String>?, t: Throwable?) {}
 
     override fun onResponse(call: Call<String>?, response: Response<String>?) {}
+
+    private fun updateProgress(){
+
+    }
 
     override fun onDestroy() {
         super.onDestroy()

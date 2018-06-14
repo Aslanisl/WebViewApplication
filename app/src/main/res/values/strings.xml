@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">WebViewApplication</string>
+
+    <string name="scanning_start">Выполняется\nсканирование</string>
+    <string name="scanning_finish">Сканирование\nзавершено</string>
+    <string name="all_threads_are_fixed">Все угрозы/nустранены!</string>
 </resources>
