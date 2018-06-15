@@ -22,7 +22,7 @@
         android:id="@+id/logotypeImage"
         android:layout_width="250dp"
         android:layout_height="250dp"
-        android:layout_below="@+id/title"
+        android:layout_below="@+id/titleView"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
         android:scaleType="centerInside"
@@ -38,12 +38,12 @@
         android:src="@drawable/android" />
 
     <TextView
-        android:id="@id/title"
+        android:id="@id/titleView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical|top"
-        android:layout_marginEnd="54dp"
-        android:layout_marginStart="54dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="15dp"
         android:layout_marginTop="24dp"
         android:gravity="center"
         android:text="@string/scanning_start"
@@ -52,6 +52,7 @@
         android:textSize="32sp" />
 
     <LinearLayout
+        android:id="@+id/progressContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -70,6 +71,7 @@
             tools:progress="50" />
 
         <TextView
+            android:id="@+id/progressText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -78,5 +80,19 @@
             tools:text="50%" />
 
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/threadsFixed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@id/androidImage"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:gravity="center"
+        android:text="@string/all_threads_are_fixed"
+        android:textColor="#8bb63e"
+        android:textSize="32sp"
+        android:visibility="gone" />
 
 </RelativeLayout>

