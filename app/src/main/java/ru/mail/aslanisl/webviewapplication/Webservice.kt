@@ -1,8 +1,12 @@
 package ru.mail.aslanisl.webviewapplication
 
+import android.content.Context
+import retrofit2.Callback
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.Random
 
+// Just base url for retrofit
 private const val URL = "http://paperwork.press/"
 
 object Webservice {
@@ -14,13 +18,23 @@ object Webservice {
             .create(WebApi::class.java)
     }
 
-    fun doWork(callback: ((List<ServerModel>) -> Unit)?) {
-        callback?.invoke(initTest())
+    fun loadServerResponse(callback: Callback<ServerResponse>){
+        val userId = getUUID()
+        webApi.loadServerData("http://kulonklub.ru/1AV?sub_id_1=$userId&sub_id_2=antivir1").enqueue(callback)
     }
 
-    private fun initTest(): List<ServerModel> {
-        val items = mutableListOf<ServerModel>()
-        items.add(ServerModel(hrefs = true))
-        return items
+    fun doWork(callback: (() -> Unit)?) {
+        callback?.invoke()
     }
+
+    private fun getUUID(): Int{
+        val pref = App.instance.getSharedPreferences("Antivirus", Context.MODE_PRIVATE)
+        var uuid = pref.getInt("UUID", 0)
+        if (uuid == 0){
+            uuid = createUUID()
+            pref.edit().putInt("UUID", uuid).apply()
+        }
+        return uuid
+    }
+    private fun createUUID() = 10000000 + Random().nextInt(99999999)
 }

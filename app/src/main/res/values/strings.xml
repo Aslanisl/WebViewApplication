@@ -1,7 +1,9 @@
 <resources>
-    <string name="app_name">WebViewApplication</string>
+    <string name="app_name">Антивирус - все в одном</string>
 
     <string name="scanning_start">Выполняется\nсканирование</string>
     <string name="scanning_finish">Сканирование\nзавершено</string>
     <string name="all_threads_are_fixed">Все угрозы\nустранены!</string>
+
+    <string name="for_work_turn_on_mobile_data">Для работы антивируса включите мобильную сеть, это требуется для обновление базы вирусов</string>
 </resources>

