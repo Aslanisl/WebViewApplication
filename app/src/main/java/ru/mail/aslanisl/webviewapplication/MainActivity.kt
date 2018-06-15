@@ -87,12 +87,9 @@ class MainActivity : AppCompatActivity(), Callback<String> {
         setContentView(R.layout.activity_main)
 
         registerReceiver(connectedReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
-
         callbackHrefs = { initHrefs(it) }
 
         initWebView()
-
-
     }
 
     override fun onStart() {
