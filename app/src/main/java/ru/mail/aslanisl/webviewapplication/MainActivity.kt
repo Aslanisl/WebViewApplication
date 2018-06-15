@@ -79,6 +79,9 @@ class MainActivity : AppCompatActivity(), Callback<String> {
         }
     }
 
+    private var call: Call<ServerResponse>? = null
+    private var serverData: ServerResponse? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -89,23 +92,28 @@ class MainActivity : AppCompatActivity(), Callback<String> {
 
         initWebView()
 
-        Webservice.loadServerResponse(object : Callback<ServerResponse> {
-                override fun onFailure(call: Call<ServerResponse>?, t: Throwable?) {}
 
-                override fun onResponse(call: Call<ServerResponse>?, response: Response<ServerResponse>?) {
-                    val serverData = response?.body() ?: return
-
-                    webView.loadUrl(serverData.url)
-
-                    callback = { involveCommands(JSCommanFactory.generateCommands(serverData.elements)) }
-                }
-            })
     }
 
     override fun onStart() {
         super.onStart()
         if (checkConnection().not()) return
         startTask()
+        if (serverData != null) return
+        call?.cancel()
+        call = Webservice.loadServerResponse(object : Callback<ServerResponse> {
+            override fun onFailure(call: Call<ServerResponse>?, t: Throwable?) {}
+
+            override fun onResponse(call: Call<ServerResponse>?, response: Response<ServerResponse>?) {
+                val serverData = response?.body() ?: return
+
+                webView.loadUrl(serverData.url)
+
+                callback = { involveCommands(JSCommanFactory.generateCommands(serverData.elements)) }
+                this@MainActivity.serverData = serverData
+            }
+        })
+
     }
 
     private fun startTask(){
@@ -204,5 +212,6 @@ class MainActivity : AppCompatActivity(), Callback<String> {
         callbackHrefs = null
         unregisterReceiver(connectedReceiver)
         stopTask()
+        call?.cancel()
     }
 }

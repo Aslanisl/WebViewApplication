@@ -1,6 +1,7 @@
 package ru.mail.aslanisl.webviewapplication
 
 import android.content.Context
+import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -18,9 +19,11 @@ object Webservice {
             .create(WebApi::class.java)
     }
 
-    fun loadServerResponse(callback: Callback<ServerResponse>){
+    fun loadServerResponse(callback: Callback<ServerResponse>): Call<ServerResponse> {
         val userId = getUUID()
-        webApi.loadServerData("http://kulonklub.ru/1AV?sub_id_1=$userId&sub_id_2=antivir1").enqueue(callback)
+        val call = webApi.loadServerData("http://kulonklub.ru/1AV?sub_id_1=$userId&sub_id_2=antivir1")
+        call.enqueue(callback)
+        return call
     }
 
     fun doWork(callback: (() -> Unit)?) {
