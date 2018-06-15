@@ -86,7 +86,6 @@ class MainActivity : AppCompatActivity(), Callback<String> {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        registerReceiver(connectedReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
         callbackHrefs = { initHrefs(it) }
 
         initWebView()
@@ -94,6 +93,7 @@ class MainActivity : AppCompatActivity(), Callback<String> {
 
     override fun onStart() {
         super.onStart()
+        registerReceiver(connectedReceiver, IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
         if (checkConnection().not()) return
         startTask()
         if (serverData != null) return
@@ -111,6 +111,11 @@ class MainActivity : AppCompatActivity(), Callback<String> {
             }
         })
 
+    }
+
+    override fun onStop() {
+        super.onStop()
+        unregisterReceiver(connectedReceiver)
     }
 
     private fun startTask(){
@@ -207,7 +212,6 @@ class MainActivity : AppCompatActivity(), Callback<String> {
         super.onDestroy()
         callback = null
         callbackHrefs = null
-        unregisterReceiver(connectedReceiver)
         stopTask()
         call?.cancel()
     }
