@@ -14,14 +14,14 @@ private const val URL = "http://paperwork.press/"
 
 object Webservice {
     val webApi by lazy {
-        val client = OkHttpClient()
-            .newBuilder()
-            .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
-            .build()
+//        val client = OkHttpClient()
+//            .newBuilder()
+//            .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
+//            .build()
         Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(URL)
-            .client(client)
+//            .client(client)
             .build()
             .create(WebApi::class.java)
     }
