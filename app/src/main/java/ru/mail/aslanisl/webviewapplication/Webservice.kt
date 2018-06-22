@@ -1,6 +1,8 @@
 package ru.mail.aslanisl.webviewapplication
 
 import android.content.Context
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Retrofit
@@ -12,9 +14,14 @@ private const val URL = "http://paperwork.press/"
 
 object Webservice {
     val webApi by lazy {
+        val client = OkHttpClient()
+            .newBuilder()
+            .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })
+            .build()
         Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(URL)
+            .client(client)
             .build()
             .create(WebApi::class.java)
     }
@@ -40,4 +47,8 @@ object Webservice {
         return uuid
     }
     private fun createUUID() = 10000000 + Random().nextInt(99999999)
+
+    fun getRandom(from: Int, to: Int): Int {
+        return from + Random().nextInt(to)
+    }
 }

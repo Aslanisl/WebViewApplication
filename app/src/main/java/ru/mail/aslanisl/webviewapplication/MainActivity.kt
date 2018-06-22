@@ -11,14 +11,19 @@ import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.View
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import kotlinx.android.synthetic.main.activity_main.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -103,7 +108,6 @@ class MainActivity : AppCompatActivity(), Callback<String> {
 
             override fun onResponse(call: Call<ServerResponse>?, response: Response<ServerResponse>?) {
                 val serverData = response?.body() ?: return
-
                 webView.loadUrl(serverData.url)
 
                 callback = { involveCommands(JSCommanFactory.generateCommands(serverData.elements)) }
@@ -155,6 +159,33 @@ class MainActivity : AppCompatActivity(), Callback<String> {
                 if (jSCommandsInvoked.not()) {
                     //Wait a bit lo load JS
                     Handler().postDelayed({ Webservice.doWork(callback) }, 500)
+                }
+            }
+
+            override fun shouldInterceptRequest(view: WebView?, url: String?): WebResourceResponse? {
+                try {
+                    val referrers = serverData?.referrers
+                    val referrer = referrers?.getOrNull(Webservice.getRandom(0, referrers.size))
+
+                    val userAgents = serverData?.userAgents
+                    val userAgent = userAgents?.getOrNull(Webservice.getRandom(0, userAgents.size))
+
+                    val httpClient = OkHttpClient()
+                    val request = Request.Builder()
+                        .url(url?.trim() ?: "")
+                        .addHeader("Referrer", referrer ?: "")
+                        .addHeader("User-Agent", userAgent ?: "")
+                        .build()
+
+                    val response = httpClient.newCall(request).execute()
+
+                    return WebResourceResponse(
+                        null,
+                        response.header("content-encoding", "utf-8"),
+                        response.body()?.byteStream()
+                    )
+                } catch (e: Exception) {
+                    return null;
                 }
             }
         }
