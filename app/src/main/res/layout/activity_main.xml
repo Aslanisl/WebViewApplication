@@ -5,12 +5,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <WebView
-        android:id="@+id/webView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone" />
-
     <ImageView
         android:id="@+id/backgroundImage"
         android:layout_width="match_parent"
@@ -94,5 +88,11 @@
         android:textColor="#8bb63e"
         android:textSize="32sp"
         android:visibility="gone" />
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible" />
 
 </RelativeLayout>
