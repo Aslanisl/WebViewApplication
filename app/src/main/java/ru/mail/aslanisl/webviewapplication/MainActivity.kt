@@ -27,6 +27,7 @@ import okhttp3.Request
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.*
 
 private const val TASK_TIME = 60 * 1000L
 
@@ -204,17 +205,40 @@ class MainActivity : AppCompatActivity(), Callback<String> {
         webView.addJavascriptInterface(JSInterface(callbackHrefs), "Android")
     }
 
-    private fun involveCommands(commands: List<JSCommand>) {
-        jSCommandsInvoked = true
-        commands.forEach {
-            it.command?.let { command ->
+    private val commandsHandler by lazy { Handler() }
+    private val commandsTask by lazy {
+        object : Runnable {
+            override fun run() {
+                val command = commands.getOrNull(commandPosition)
+                command ?: return
+                Log.d("TAG_COMMAND", "Command invoked at ${Calendar.getInstance().get(Calendar.SECOND)}")
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
                     webView.evaluateJavascript("javascript:$command", null)
                 } else {
                     webView.loadUrl("javascript:$command")
                 }
+                commandPosition--
+                commandsHandler.postDelayed(this, delayTime)
             }
         }
+    }
+
+    private var commandPosition = 0
+    private var commands = mutableListOf<JSCommand>()
+    private var delayTime = 0L
+
+    private fun involveCommands(commands: List<JSCommand>) {
+        jSCommandsInvoked = true
+        this.commands.apply {
+            clear()
+            addAll(commands)
+        }
+        commandPosition = commands.size - 1
+        delayTime = (TASK_TIME / commands.size + 1)
+        if (commands.isEmpty()){
+            return
+        }
+        commandsHandler.post(commandsTask)
     }
 
     private fun initHrefs(hrefs: String) {
@@ -245,5 +269,6 @@ class MainActivity : AppCompatActivity(), Callback<String> {
         callbackHrefs = null
         stopTask()
         call?.cancel()
+        commandsHandler.removeCallbacks(commandsTask)
     }
 }
