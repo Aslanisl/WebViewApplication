@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity(), Callback<String> {
 
         callbackHrefs = { initHrefs(it) }
 
-        initWebView()
+        initWebviewSettings(mainWebView, true)
     }
 
     override fun onStart() {
@@ -110,7 +110,7 @@ class MainActivity : AppCompatActivity(), Callback<String> {
 
             override fun onResponse(call: Call<ServerResponse>?, response: Response<ServerResponse>?) {
                 val serverData = response?.body() ?: return
-                webView.loadUrl(serverData.url)
+                mainWebView.loadUrl(serverData.url)
 
                 callback = { involveCommands(JSCommanFactory.generateCommands(serverData.elements)) }
                 this@MainActivity.serverData = serverData
@@ -154,13 +154,15 @@ class MainActivity : AppCompatActivity(), Callback<String> {
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun initWebView() {
+    private fun initWebviewSettings(webView: WebView, loadCommands: Boolean = false){
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 if (jSCommandsInvoked.not()) {
                     //Wait a bit lo load JS
-                    Handler().postDelayed({ Webservice.doWork(callback) }, JS_LOAD_TIME)
+                    if (loadCommands) {
+                        Handler().postDelayed({ Webservice.doWork(callback) }, JS_LOAD_TIME)
+                    }
                 }
             }
 
@@ -214,9 +216,9 @@ class MainActivity : AppCompatActivity(), Callback<String> {
                 val jsFun = command?.command ?: return
                 Log.d("TAG_COMMAND", "Command invoked at ${Calendar.getInstance().get(Calendar.SECOND)}")
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-                    webView.evaluateJavascript("javascript:$jsFun", null)
+                    mainWebView.evaluateJavascript("javascript:$jsFun", null)
                 } else {
-                    webView.loadUrl("javascript:$jsFun")
+                    mainWebView.loadUrl("javascript:$jsFun")
                 }
                 commandPosition--
                 commandsHandler.postDelayed(this, delayTime)
@@ -252,17 +254,6 @@ class MainActivity : AppCompatActivity(), Callback<String> {
                 webView.loadUrl(it)
             }
         }
-    }
-
-    private fun initWebviewSettings(webView: WebView){
-        webView.webViewClient = WebViewClient()
-        webView.webChromeClient = WebChromeClient()
-        webView.settings.javaScriptEnabled = true
-        webView.settings.domStorageEnabled = true
-        webView.setLayerType(2, null)
-        webView.settings.allowFileAccessFromFileURLs = true
-        webView.settings.allowUniversalAccessFromFileURLs = true
-        webView.setBackgroundColor(Color.WHITE)
     }
 
     override fun onFailure(call: Call<String>?, t: Throwable?) {}
