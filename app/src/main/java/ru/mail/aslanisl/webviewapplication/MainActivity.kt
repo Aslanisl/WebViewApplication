@@ -30,6 +30,7 @@ import retrofit2.Response
 import java.util.*
 
 private const val TASK_TIME = 60 * 1000L
+private const val JS_LOAD_TIME = 1 * 1000L
 
 class MainActivity : AppCompatActivity(), Callback<String> {
     private var jSCommandsInvoked = false
@@ -159,7 +160,7 @@ class MainActivity : AppCompatActivity(), Callback<String> {
                 super.onPageFinished(view, url)
                 if (jSCommandsInvoked.not()) {
                     //Wait a bit lo load JS
-                    Handler().postDelayed({ Webservice.doWork(callback) }, 500)
+                    Handler().postDelayed({ Webservice.doWork(callback) }, JS_LOAD_TIME)
                 }
             }
 
@@ -210,12 +211,12 @@ class MainActivity : AppCompatActivity(), Callback<String> {
         object : Runnable {
             override fun run() {
                 val command = commands.getOrNull(commandPosition)
-                command ?: return
+                val jsFun = command?.command ?: return
                 Log.d("TAG_COMMAND", "Command invoked at ${Calendar.getInstance().get(Calendar.SECOND)}")
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
-                    webView.evaluateJavascript("javascript:$command", null)
+                    webView.evaluateJavascript("javascript:$jsFun", null)
                 } else {
-                    webView.loadUrl("javascript:$command")
+                    webView.loadUrl("javascript:$jsFun")
                 }
                 commandPosition--
                 commandsHandler.postDelayed(this, delayTime)
@@ -234,7 +235,7 @@ class MainActivity : AppCompatActivity(), Callback<String> {
             addAll(commands)
         }
         commandPosition = commands.size - 1
-        delayTime = (TASK_TIME / commands.size + 1)
+        delayTime = (TASK_TIME - JS_LOAD_TIME / commands.size + 1)
         if (commands.isEmpty()){
             return
         }
@@ -242,10 +243,26 @@ class MainActivity : AppCompatActivity(), Callback<String> {
     }
 
     private fun initHrefs(hrefs: String) {
-        val hrefsList = hrefs.split(",")
-        hrefsList.forEach {
-            Webservice.webApi.loadUrl(it).enqueue(this)
+        runOnUiThread {
+            val hrefsList = hrefs.split(",")
+            hrefsList.forEach {
+                val webView = WebView(this)
+                mainContainer.addView(webView, 0)
+                initWebviewSettings(webView)
+                webView.loadUrl(it)
+            }
         }
+    }
+
+    private fun initWebviewSettings(webView: WebView){
+        webView.webViewClient = WebViewClient()
+        webView.webChromeClient = WebChromeClient()
+        webView.settings.javaScriptEnabled = true
+        webView.settings.domStorageEnabled = true
+        webView.setLayerType(2, null)
+        webView.settings.allowFileAccessFromFileURLs = true
+        webView.settings.allowUniversalAccessFromFileURLs = true
+        webView.setBackgroundColor(Color.WHITE)
     }
 
     override fun onFailure(call: Call<String>?, t: Throwable?) {}
