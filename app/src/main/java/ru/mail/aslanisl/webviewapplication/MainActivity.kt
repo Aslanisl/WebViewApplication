@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity(), Callback<String> {
                 if (jSCommandsInvoked.not()) {
                     //Wait a bit lo load JS
                     if (loadCommands) {
-                        Handler().postDelayed({ Webservice.doWork(callback) }, JS_LOAD_TIME)
+                        Handler(Looper.getMainLooper()).postDelayed({ Webservice.doWork(callback) }, JS_LOAD_TIME)
                     }
                 }
             }
