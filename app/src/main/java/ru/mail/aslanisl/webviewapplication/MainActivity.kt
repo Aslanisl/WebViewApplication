@@ -17,10 +17,7 @@ import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
-import android.webkit.WebChromeClient
-import android.webkit.WebResourceResponse
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.webkit.*
 import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -30,7 +27,7 @@ import retrofit2.Response
 import java.util.*
 
 private const val TASK_TIME = 60 * 1000L
-private const val JS_LOAD_TIME = 1 * 1000L
+private const val JS_LOAD_TIME = 10 * 1000L
 
 class MainActivity : AppCompatActivity(), Callback<String> {
     private var jSCommandsInvoked = false
@@ -191,6 +188,11 @@ class MainActivity : AppCompatActivity(), Callback<String> {
                 } catch (e: Exception) {
                     return null;
                 }
+            }
+
+            override fun onReceivedError(view: WebView?, request: WebResourceRequest?, error: WebResourceError?) {
+                super.onReceivedError(view, request, error)
+                Log.d("TAG", error?.toString())
             }
         }
 
